@@ -40,6 +40,7 @@ public class SetAuditCookieHandler implements Handler<RoutingContext> {
     private long auditCookieTtl;
     private String cipherKey;
     private Boolean isSecureCookiesEnabled;
+    private Boolean isHttpOnlyCookiesEnabled;
 
     private Meter createAuditCookieMeter;
     private Meter createAuditCookieFailedMeter;
@@ -53,13 +54,15 @@ public class SetAuditCookieHandler implements Handler<RoutingContext> {
                                  @Value("${cookie.audit.name}") String auditCookieName,
                                  @Value("${cookie.audit.ttl}") long auditCookieTtl,
                                  @Value("${cookie.audit.cipher-key}") String cipherKey,
-                                 @Value("${cookies.secure}") Boolean isSecureCookiesEnabled) {
+                                 @Value("${cookies.secure}") Boolean isSecureCookiesEnabled,
+                                 @Value("${cookies.httpOnly:true}") Boolean isHttpOnlyCookiesEnabled) {
         this.locationService = locationService;
         this.auditCookieService = auditCookieService;
         this.auditCookieName = auditCookieName;
         this.auditCookieTtl = auditCookieTtl;
         this.cipherKey = cipherKey;
         this.isSecureCookiesEnabled = isSecureCookiesEnabled;
+        this.isHttpOnlyCookiesEnabled = isHttpOnlyCookiesEnabled;
 
         this.createAuditCookieMeter = metricRegistry.meter(METRIC_CREATE_AUDIT_COOKIE);
         this.createAuditCookieFailedMeter = metricRegistry.meter(METRIC_CREATE_AUDIT_COOKIE_FAILED);
@@ -104,6 +107,7 @@ public class SetAuditCookieHandler implements Handler<RoutingContext> {
                 }
 
                 cookie.setSecure(isSecure);
+                cookie.setHttpOnly(isHttpOnlyCookiesEnabled);
                 cookie.setSameSite(CookieSameSite.NONE);
 
                 routingContext.addCookie(cookie);
